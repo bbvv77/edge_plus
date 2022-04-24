@@ -326,18 +326,6 @@ bool IsOnOneTab(IAccessible *top, POINT pt)
     return flag;
 }
 
-int GetRawChildCount(IAccessible *node)
-{
-    int count = 0;
-    TraversalRawAccessible(node, [&count]
-                           (IAccessible * child)
-    {
-        count++;
-        return false;
-    });
-    return count;
-}
-
 // 是否只有一个标签
 bool IsOnlyOneTab(IAccessible *top)
 {
@@ -355,24 +343,12 @@ bool IsOnlyOneTab(IAccessible *top)
             IAccessible *PageTabPane = GetParentElement(PageTab);
             if (PageTabPane)
             {
-                TraversalAccessible(PageTabPane, [&tab_count, &closing, &last_count]
+                TraversalAccessible(PageTabPane, [&tab_count]
                                     (IAccessible * child)
                 {
                     //if (GetAccessibleRole(child) == ROLE_SYSTEM_PAGETAB && GetChildCount(child))
                     if (GetAccessibleRole(child) == ROLE_SYSTEM_PAGETAB)
                     {
-                        //DebugChildCount(child);
-                        if (last_count == 0)
-                        {
-                            last_count = GetRawChildCount(child);
-                        }
-                        else
-                        {
-                            if (last_count != GetRawChildCount(child))
-                            {
-                                closing = true;
-                            }
-                        }
                         tab_count++;
                     }
                     return false;
@@ -383,7 +359,7 @@ bool IsOnlyOneTab(IAccessible *top)
         }
         //DebugLog(L"closing %d,%d", closing, tab_count);
         PageTabList->Release();
-        return tab_count <= 1 || (closing && tab_count == 2);
+        return tab_count <= 1;
     }
     else
     {
@@ -549,6 +525,7 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
                     //ExecuteCommand(IDC_SELECT_PREVIOUS_TAB, hwnd);
                     //ExecuteCommand(IDC_CLOSE_TAB, hwnd);
                 }
+                return 1;
             }
         }
 
